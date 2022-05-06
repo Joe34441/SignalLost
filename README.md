@@ -1,6 +1,6 @@
 # SignalLost
 
-- You are a newly developed robot, the developers are testing their new Artificial Intelligence by putting you through tests to examine your problem solving ability. Navigate through the tests without losing signal, or your current iteration will be marked as a failure.
+- You are an experimental branch of a humanoid robot, the developers are evaluating their new Artificial Intelligence by putting you through tests to examine your problem solving ability. Navigate through the tests completing the puzzles without losing signal, or your current iteration will be marked as a failure.
 
 <br />
 
