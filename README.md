@@ -6,3 +6,7 @@
   - hold click - hand shoots out, stays at the destination if it hits an object
   - release click - hand returns with object (if possible), or hand just returns if it was on a source object (e.g. signal source)
 
+
+Unity 2021.1.12f1
+C#
+Mouse & Keyboard
