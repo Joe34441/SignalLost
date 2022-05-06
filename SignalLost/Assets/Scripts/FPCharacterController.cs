@@ -17,6 +17,7 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private float moveSmoothTime = 0.1f;
 
 
+    private PlayerBodyParts BodyParts = null;
     private CharacterController controller = null;
 
     private Vector2 currentDirection = Vector2.zero;
@@ -34,9 +35,14 @@ public class FPCharacterController : MonoBehaviour
     private bool RightMouseButtonReleased = false;
 
 
+    private GameObject fakeRightHand = null;
+    private GameObject fakeLeftHand = null;
+
     private void Start()
     {
+        BodyParts = gameObject.GetComponent<PlayerBodyParts>();
         controller = gameObject.GetComponent<CharacterController>();
+
         if (lockCursor)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -46,9 +52,12 @@ public class FPCharacterController : MonoBehaviour
 
     private void Update()
     {
+        ResetMouseButtonFlags();
+
         UpdateMouseLook();
         UpdateMovement();
         UpdateMouseButtonInputs();
+
         ProcessInputs();
     }
 
@@ -91,26 +100,134 @@ public class FPCharacterController : MonoBehaviour
     {
         //Left Mouse Button
         if (Input.GetKeyDown(KeyCode.Mouse0)) LeftMouseButtonPressed = true;
-        if (Input.GetKeyUp(KeyCode.Mouse1)) RightMouseButtonReleased = true;
+        if (Input.GetKeyUp(KeyCode.Mouse0)) LeftMouseButtonReleased = true;
         //Right Mouse Button
         if (Input.GetKeyDown(KeyCode.Mouse1)) RightMouseButtonPressed = true;
-        if (Input.GetKeyUp(KeyCode.Mouse0)) LeftMouseButtonReleased = true;
+        if (Input.GetKeyUp(KeyCode.Mouse1)) RightMouseButtonReleased = true;
 
     }
 
     private void ProcessInputs()
     {
-        if (LeftMouseButtonPressed) Debug.Log("LMB Press");
-        if (LeftMouseButtonReleased) Debug.Log("LMB Release");
+        if (LeftMouseButtonPressed)
+        {
+            RaycastHit outHit;
+            Ray ray = playerCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
 
-        if (RightMouseButtonPressed) Debug.Log("RMB Press");
-        if (RightMouseButtonReleased) Debug.Log("RMB Release");
+            if (Physics.Raycast(ray, out outHit))
+            {
+                GameObject objectHit = outHit.transform.gameObject;
 
-        //temp
+                Vector3 hitPoint = outHit.point;
+
+                //Debug.Log("Hit: " + objectHit.name);
+
+                float distanceFromLeft = Vector3.Distance(BodyParts.GetLeftHand().transform.position, hitPoint);
+                float distanceFromRight = Vector3.Distance(BodyParts.GetRightHand().transform.position, hitPoint);
+
+                if (distanceFromLeft < distanceFromRight)
+                {
+                    //Debug.Log("Left hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
+                }
+                else
+                {
+                    //Debug.Log("Right hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
+                }
+
+
+                Destroy(fakeLeftHand);
+
+                GameObject hand = BodyParts.GetLeftHand();
+                hand.GetComponent<MeshRenderer>().enabled = true;
+                fakeLeftHand = Instantiate(hand);
+                hand.GetComponent<MeshRenderer>().enabled = false;
+                BodyParts.SetLeftHand(hand);
+
+                fakeLeftHand.transform.position = hitPoint;
+
+
+            }
+
+        }
+
+        if (LeftMouseButtonReleased)
+        {
+            Destroy(fakeLeftHand);
+
+            GameObject hand = BodyParts.GetLeftHand();
+            hand.GetComponent<MeshRenderer>().enabled = true;
+            BodyParts.SetLeftHand(hand);
+        }
+
+
+
+
+        if (RightMouseButtonPressed)
+        {
+            RaycastHit outHit;
+            Ray ray = playerCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out outHit))
+            {
+                GameObject objectHit = outHit.transform.gameObject;
+
+                Vector3 hitPoint = outHit.point;
+
+                //Debug.Log("Hit: " + objectHit.name);
+
+                float distanceFromLeft = Vector3.Distance(BodyParts.GetLeftHand().transform.position, hitPoint);
+                float distanceFromRight = Vector3.Distance(BodyParts.GetRightHand().transform.position, hitPoint);
+
+                if (distanceFromLeft < distanceFromRight)
+                {
+                    //Debug.Log("Left hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
+                }
+                else
+                {
+                    //Debug.Log("Right hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
+                }
+
+
+                Destroy(fakeRightHand);
+
+                GameObject hand = BodyParts.GetRightHand();
+                hand.GetComponent<MeshRenderer>().enabled = true;
+                fakeRightHand = Instantiate(hand);
+                hand.GetComponent<MeshRenderer>().enabled = false;
+                BodyParts.SetRightHand(hand);
+
+                fakeRightHand.transform.position = hitPoint;
+                
+
+            }
+
+        }
+
+        if (RightMouseButtonReleased)
+        {
+            Destroy(fakeRightHand);
+
+            GameObject hand = BodyParts.GetRightHand();
+            hand.GetComponent<MeshRenderer>().enabled = true;
+            BodyParts.SetRightHand(hand);
+        }
+
+
+
+        //if (LeftMouseButtonPressed) Debug.Log("LMB Press");
+        //if (LeftMouseButtonReleased) Debug.Log("LMB Release");
+
+        //if (RightMouseButtonPressed) Debug.Log("RMB Press");
+        //if (RightMouseButtonReleased) Debug.Log("RMB Release");
+
+
+    }
+
+    private void ResetMouseButtonFlags()
+    {
         LeftMouseButtonPressed = false;
         LeftMouseButtonReleased = false;
         RightMouseButtonPressed = false;
         RightMouseButtonReleased = false;
     }
-
 }
