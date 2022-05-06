@@ -5,13 +5,17 @@ using UnityEngine;
 public class FPCharacterController : MonoBehaviour
 {
 
-    [SerializeField] private Transform playerCamera = null;
     [SerializeField] private float gravityStrength = 9.81f;
-    [SerializeField] private float walkSpeed = 6.0f;
-    [SerializeField] private float mouseSensitivity = 3.0f;
+
+    [SerializeField] private Transform playerCamera = null;
+
     [SerializeField] private float cameraYMaxRotation = 75.0f;
-    [SerializeField] private float moveSmoothTime = 0.1f;
+    [SerializeField] private float mouseSensitivity = 3.0f;
     [SerializeField] private float mouseSmoothTime = 0.03f;
+
+    [SerializeField] private float walkSpeed = 6.0f;
+    [SerializeField] private float moveSmoothTime = 0.1f;
+
 
     private CharacterController controller = null;
 
@@ -23,6 +27,12 @@ public class FPCharacterController : MonoBehaviour
     private bool lockCursor = true;
     private float velocityY = 0.0f;
     private float cameraYRotation = 0.0f;
+
+    private bool LeftMouseButtonPressed = false;
+    private bool LeftMouseButtonReleased = false;
+    private bool RightMouseButtonPressed = false;
+    private bool RightMouseButtonReleased = false;
+
 
     private void Start()
     {
@@ -38,6 +48,8 @@ public class FPCharacterController : MonoBehaviour
     {
         UpdateMouseLook();
         UpdateMovement();
+        UpdateMouseButtonInputs();
+        ProcessInputs();
     }
 
     private void UpdateMouseLook()
@@ -73,6 +85,32 @@ public class FPCharacterController : MonoBehaviour
         Vector3 velocity = (transform.forward * currentDirection.y + transform.right * currentDirection.x) * walkSpeed + Vector3.up * velocityY;
 
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    private void UpdateMouseButtonInputs()
+    {
+        //Left Mouse Button
+        if (Input.GetKeyDown(KeyCode.Mouse0)) LeftMouseButtonPressed = true;
+        if (Input.GetKeyUp(KeyCode.Mouse1)) RightMouseButtonReleased = true;
+        //Right Mouse Button
+        if (Input.GetKeyDown(KeyCode.Mouse1)) RightMouseButtonPressed = true;
+        if (Input.GetKeyUp(KeyCode.Mouse0)) LeftMouseButtonReleased = true;
+
+    }
+
+    private void ProcessInputs()
+    {
+        if (LeftMouseButtonPressed) Debug.Log("LMB Press");
+        if (LeftMouseButtonReleased) Debug.Log("LMB Release");
+
+        if (RightMouseButtonPressed) Debug.Log("RMB Press");
+        if (RightMouseButtonReleased) Debug.Log("RMB Release");
+
+        //temp
+        LeftMouseButtonPressed = false;
+        LeftMouseButtonReleased = false;
+        RightMouseButtonPressed = false;
+        RightMouseButtonReleased = false;
     }
 
 }
