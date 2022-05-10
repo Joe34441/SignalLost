@@ -20,9 +20,11 @@ public class FPCharacterController : MonoBehaviour
     private PlayerBodyParts BodyParts = null;
     private CharacterController controller = null;
 
+    private Vector3 maxDistance;
+
     private Vector2 currentDirection = Vector2.zero;
     private Vector2 currentDirectionVelocity = Vector2.zero;
-    private  Vector2 currentMouseDelta = Vector2.zero;
+    private Vector2 currentMouseDelta = Vector2.zero;
     private Vector2 currentMouseDeltaVelocity = Vector2.zero;
 
     private bool lockCursor = true;
