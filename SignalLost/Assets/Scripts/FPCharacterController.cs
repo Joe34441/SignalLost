@@ -36,9 +36,25 @@ public class FPCharacterController : MonoBehaviour
     private bool RightMouseButtonPressed = false;
     private bool RightMouseButtonReleased = false;
 
-
     private GameObject fakeRightHand = null;
     private GameObject fakeLeftHand = null;
+
+    private Vector3 fakeRightHandDestination;
+    private Vector3 fakeLeftHandDestination;
+
+    private Vector3 fakeRightHandStartPosition;
+    private Vector3 fakeLeftHandStartPosition;
+
+    private bool moveRightHandAway;
+    private bool moveRightHandBack;
+    private bool moveLeftHandAway;
+    private bool moveLeftHandBack;
+
+    float speed = 15.0f;
+    float rightHandStartTime = 0.0f;
+    float leftHandStartTime = 0.0f;
+    float rightHandJourneyLength = 0.0f;
+    float leftHandJourneyLength = 0.0f;
 
     public GameObject GetFakeRightHand() { return fakeRightHand; }
     public GameObject GetFakeLeftHand() { return fakeLeftHand; }
@@ -65,6 +81,8 @@ public class FPCharacterController : MonoBehaviour
         UpdateMouseButtonInputs();
 
         ProcessInputs();
+
+        UpdateHandPositions();
     }
 
     private void UpdateMouseLook()
@@ -110,12 +128,11 @@ public class FPCharacterController : MonoBehaviour
         //Right Mouse Button
         if (Input.GetKeyDown(KeyCode.Mouse1)) RightMouseButtonPressed = true;
         if (Input.GetKeyUp(KeyCode.Mouse1)) RightMouseButtonReleased = true;
-
     }
 
     private void ProcessInputs()
     {
-        if (LeftMouseButtonPressed)
+        if (LeftMouseButtonPressed && !moveLeftHandBack)
         {
             RaycastHit outHit;
             Ray ray = playerCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
@@ -125,21 +142,6 @@ public class FPCharacterController : MonoBehaviour
                 GameObject objectHit = outHit.transform.gameObject;
 
                 Vector3 hitPoint = outHit.point;
-
-                //Debug.Log("Hit: " + objectHit.name);
-
-                float distanceFromLeft = Vector3.Distance(BodyParts.GetLeftHand().transform.position, hitPoint);
-                float distanceFromRight = Vector3.Distance(BodyParts.GetRightHand().transform.position, hitPoint);
-
-                if (distanceFromLeft < distanceFromRight)
-                {
-                    //Debug.Log("Left hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
-                }
-                else
-                {
-                    //Debug.Log("Right hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
-                }
-
 
                 Destroy(fakeLeftHand);
 
@@ -149,29 +151,28 @@ public class FPCharacterController : MonoBehaviour
                 hand.GetComponent<MeshRenderer>().enabled = false;
                 BodyParts.SetLeftHand(hand);
 
-                fakeLeftHand.transform.position = hitPoint;
+                fakeLeftHandDestination = hitPoint;
+                fakeLeftHandStartPosition = BodyParts.GetLeftHand().transform.position;
+                moveLeftHandAway = true;
+                leftHandStartTime = 0.0f;
 
                 moveArm.SetWidth(0.1f);
                 moveArm.DrawLeftArm(true);
             }
-
         }
 
-        if (LeftMouseButtonReleased)
+        if (LeftMouseButtonReleased && !moveLeftHandBack && fakeLeftHand)
         {
-            Destroy(fakeLeftHand);
+            fakeLeftHandDestination = BodyParts.GetLeftHand().transform.position;
+            fakeLeftHandStartPosition = fakeLeftHand.transform.position;
 
-            GameObject hand = BodyParts.GetLeftHand();
-            hand.GetComponent<MeshRenderer>().enabled = true;
-            BodyParts.SetLeftHand(hand);
-
-            moveArm.DrawLeftArm(false);
+            moveLeftHandAway = false;
+            moveLeftHandBack = true;
+            leftHandStartTime = 0.0f;
         }
 
 
-
-
-        if (RightMouseButtonPressed)
+        if (RightMouseButtonPressed && !moveRightHandBack)
         {
             RaycastHit outHit;
             Ray ray = playerCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
@@ -182,21 +183,6 @@ public class FPCharacterController : MonoBehaviour
 
                 Vector3 hitPoint = outHit.point;
 
-                //Debug.Log("Hit: " + objectHit.name);
-
-                float distanceFromLeft = Vector3.Distance(BodyParts.GetLeftHand().transform.position, hitPoint);
-                float distanceFromRight = Vector3.Distance(BodyParts.GetRightHand().transform.position, hitPoint);
-
-                if (distanceFromLeft < distanceFromRight)
-                {
-                    //Debug.Log("Left hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
-                }
-                else
-                {
-                    //Debug.Log("Right hand is closer! left: " + distanceFromLeft + ", right: " + distanceFromRight);
-                }
-
-
                 Destroy(fakeRightHand);
 
                 GameObject hand = BodyParts.GetRightHand();
@@ -205,35 +191,25 @@ public class FPCharacterController : MonoBehaviour
                 hand.GetComponent<MeshRenderer>().enabled = false;
                 BodyParts.SetRightHand(hand);
 
-                fakeRightHand.transform.position = hitPoint;
+                fakeRightHandDestination = hitPoint;
+                fakeRightHandStartPosition = BodyParts.GetRightHand().transform.position;
+                moveRightHandAway = true;
+                rightHandStartTime = 0.0f;
 
                 moveArm.SetWidth(0.1f);
                 moveArm.DrawRightArm(true);
-
             }
-
         }
 
-        if (RightMouseButtonReleased)
+        if (RightMouseButtonReleased && !moveRightHandBack && fakeRightHand)
         {
-            Destroy(fakeRightHand);
+            fakeRightHandDestination = BodyParts.GetRightHand().transform.position;
+            fakeRightHandStartPosition = fakeRightHand.transform.position;
 
-            GameObject hand = BodyParts.GetRightHand();
-            hand.GetComponent<MeshRenderer>().enabled = true;
-            BodyParts.SetRightHand(hand);
-
-            moveArm.DrawRightArm(false);
+            moveRightHandAway = false;
+            moveRightHandBack = true;
+            rightHandStartTime = 0.0f;
         }
-
-
-
-        //if (LeftMouseButtonPressed) Debug.Log("LMB Press");
-        //if (LeftMouseButtonReleased) Debug.Log("LMB Release");
-
-        //if (RightMouseButtonPressed) Debug.Log("RMB Press");
-        //if (RightMouseButtonReleased) Debug.Log("RMB Release");
-
-
     }
 
     private void ResetMouseButtonFlags()
@@ -242,5 +218,104 @@ public class FPCharacterController : MonoBehaviour
         LeftMouseButtonReleased = false;
         RightMouseButtonPressed = false;
         RightMouseButtonReleased = false;
+    }
+
+    private void UpdateHandPositions()
+    {
+        if (moveRightHandAway)
+        {
+            if (rightHandStartTime == 0)
+            {
+                rightHandStartTime = Time.time;
+                rightHandJourneyLength = Vector3.Distance(fakeRightHandStartPosition, fakeRightHandDestination);
+            }
+
+            float distanceCovered = (Time.time - rightHandStartTime) * speed;
+            float fractionOfJourney = distanceCovered / rightHandJourneyLength;
+
+            fakeRightHand.transform.position = Vector3.Lerp(fakeRightHandStartPosition, fakeRightHandDestination, fractionOfJourney);
+
+            float distanceFromHand = Vector3.Distance(BodyParts.GetRightHand().transform.position, fakeRightHand.transform.position);
+            if (distanceFromHand > maxDistance)
+            {
+                fakeRightHandDestination = BodyParts.GetRightHand().transform.position;
+                fakeRightHandStartPosition = fakeRightHand.transform.position;
+                moveRightHandAway = false;
+                moveRightHandBack = true;
+                rightHandStartTime = 0.0f;
+            }
+        }
+        else if (moveRightHandBack)
+        {
+            if (rightHandStartTime == 0)
+            {
+                rightHandStartTime = Time.time;
+                rightHandJourneyLength = Vector3.Distance(fakeRightHandStartPosition, fakeRightHandDestination);
+            }
+
+            float distanceCovered = (Time.time - rightHandStartTime) * speed;
+            float fractionOfJourney = distanceCovered / rightHandJourneyLength;
+
+            fakeRightHand.transform.position = Vector3.Lerp(fakeRightHandStartPosition, BodyParts.GetRightHand().transform.position, fractionOfJourney);
+
+            if (fakeRightHand.transform.position == BodyParts.GetRightHand().transform.position)
+            {
+                Destroy(fakeRightHand);
+
+                GameObject hand = BodyParts.GetRightHand();
+                hand.GetComponent<MeshRenderer>().enabled = true;
+                BodyParts.SetRightHand(hand);
+                moveArm.DrawRightArm(false);
+                moveRightHandBack = false;
+            }
+        }
+
+        if (moveLeftHandAway)
+        {
+            if (leftHandStartTime == 0)
+            {
+                leftHandStartTime = Time.time;
+                leftHandJourneyLength = Vector3.Distance(fakeLeftHandStartPosition, fakeLeftHandDestination);
+            }
+
+            float distanceCovered = (Time.time - leftHandStartTime) * speed;
+            float fractionOfJourney = distanceCovered / leftHandJourneyLength;
+
+            fakeLeftHand.transform.position = Vector3.Lerp(fakeLeftHandStartPosition, fakeLeftHandDestination, fractionOfJourney);
+
+            float distanceFromHand = Vector3.Distance(BodyParts.GetLeftHand().transform.position, fakeLeftHand.transform.position);
+            if (distanceFromHand > maxDistance)
+            {
+                fakeLeftHandDestination = BodyParts.GetLeftHand().transform.position;
+                fakeLeftHandStartPosition = fakeLeftHand.transform.position;
+                moveLeftHandAway = false;
+                moveLeftHandBack = true;
+                leftHandStartTime = 0.0f;
+            }
+        }
+        else if (moveLeftHandBack)
+        {
+            if (leftHandStartTime == 0)
+            {
+                leftHandStartTime = Time.time;
+                leftHandJourneyLength = Vector3.Distance(fakeLeftHandStartPosition, fakeLeftHandDestination);
+            }
+
+            float distanceCovered = (Time.time - leftHandStartTime) * speed;
+            float fractionOfJourney = distanceCovered / leftHandJourneyLength;
+
+            fakeLeftHand.transform.position = Vector3.Lerp(fakeLeftHandStartPosition, BodyParts.GetLeftHand().transform.position, fractionOfJourney);
+
+            if (fakeLeftHand.transform.position == BodyParts.GetLeftHand().transform.position)
+            {
+                Destroy(fakeLeftHand);
+
+                GameObject hand = BodyParts.GetLeftHand();
+                hand.GetComponent<MeshRenderer>().enabled = true;
+                BodyParts.SetLeftHand(hand);
+                moveArm.DrawLeftArm(false);
+                moveLeftHandBack = false;
+            }
+        }
     }
 }
