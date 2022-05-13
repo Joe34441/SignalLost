@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class FPCharacterController : MonoBehaviour
 {
+    [SerializeField] private MoveArm moveArm;
 
     [SerializeField] private float gravityStrength = 9.81f;
 
@@ -16,11 +17,10 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private float walkSpeed = 6.0f;
     [SerializeField] private float moveSmoothTime = 0.1f;
 
+    [SerializeField] private float maxDistance = 10.0f;
 
     private PlayerBodyParts BodyParts = null;
     private CharacterController controller = null;
-
-    private Vector3 maxDistance;
 
     private Vector2 currentDirection = Vector2.zero;
     private Vector2 currentDirectionVelocity = Vector2.zero;
@@ -39,6 +39,10 @@ public class FPCharacterController : MonoBehaviour
 
     private GameObject fakeRightHand = null;
     private GameObject fakeLeftHand = null;
+
+    public GameObject GetFakeRightHand() { return fakeRightHand; }
+    public GameObject GetFakeLeftHand() { return fakeLeftHand; }
+
 
     private void Start()
     {
@@ -147,7 +151,8 @@ public class FPCharacterController : MonoBehaviour
 
                 fakeLeftHand.transform.position = hitPoint;
 
-
+                moveArm.SetWidth(0.1f);
+                moveArm.DrawLeftArm(true);
             }
 
         }
@@ -159,6 +164,8 @@ public class FPCharacterController : MonoBehaviour
             GameObject hand = BodyParts.GetLeftHand();
             hand.GetComponent<MeshRenderer>().enabled = true;
             BodyParts.SetLeftHand(hand);
+
+            moveArm.DrawLeftArm(false);
         }
 
 
@@ -199,7 +206,9 @@ public class FPCharacterController : MonoBehaviour
                 BodyParts.SetRightHand(hand);
 
                 fakeRightHand.transform.position = hitPoint;
-                
+
+                moveArm.SetWidth(0.1f);
+                moveArm.DrawRightArm(true);
 
             }
 
@@ -212,6 +221,8 @@ public class FPCharacterController : MonoBehaviour
             GameObject hand = BodyParts.GetRightHand();
             hand.GetComponent<MeshRenderer>().enabled = true;
             BodyParts.SetRightHand(hand);
+
+            moveArm.DrawRightArm(false);
         }
 
 
