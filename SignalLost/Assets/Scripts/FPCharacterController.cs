@@ -27,11 +27,25 @@ public class FPCharacterController : MonoBehaviour
 
     [SerializeField] private string portTag = "Port";
     [SerializeField] private string dockTag = "Dock";
+    [SerializeField] private string floorSignalTag = "SignalFloor";
+    [SerializeField] private string centreCircuitBoardTag = "Board";
 
     [SerializeField] private Material shoulderNoSignalMaterial;
     [SerializeField] private Material shoulderHasSignalMaterial;
 
+    [SerializeField] private GameObject leftCircuitBoard;
+    [SerializeField] private GameObject rightCircuitBoard;
+    [SerializeField] private GameObject centreCircuitBoard;
+
+    [SerializeField] private GameObject thinSmokeEffect;
+    [SerializeField] private GameObject thickSmokeEffect;
+    [SerializeField] private GameObject explosionEffect;
+    [SerializeField] private GameObject fireEffect;
+
+    [SerializeField] private List<GameObject> checkpoints = new List<GameObject>();
+
     private bool hasSignal;
+    private int floorSignalCount = 0;
 
     private PlayerBodyParts BodyParts = null;
     private CharacterController controller = null;
@@ -75,6 +89,26 @@ public class FPCharacterController : MonoBehaviour
     private bool rightHandDocked = false;
     private bool leftHandDocked = false;
 
+    private bool playerKilled = false;
+    bool isPlayerResetReady = true;
+    bool forceResetPlayer = false;
+    private bool playDeathParticles = true;
+
+    private bool playingParticles = false;
+
+    private float deathParticlesTimer = 0.0f;
+    private float deathParticleTotalTime = 8.0f;
+
+    private GameObject deathParticleEffect1Left;
+    private GameObject deathParticleEffect1Right;
+    private GameObject deathParticleEffect2Left;
+    private GameObject deathParticleEffect2Right;
+    private GameObject deathParticleEffect3Left;
+    private GameObject deathParticleEffect3Right;
+    private GameObject deathParticleEffect4Left;
+    private GameObject deathParticleEffect4Right;
+
+
     public GameObject GetFakeRightHand() { return fakeRightHand; }
     public GameObject GetFakeLeftHand() { return fakeLeftHand; }
 
@@ -93,18 +127,34 @@ public class FPCharacterController : MonoBehaviour
 
     private void Update()
     {
-        ResetMouseButtonFlags();
+        ProcessDockedState();
 
-        UpdateMouseLook();
-        UpdateMovement();
-        UpdateMouseButtonInputs();
+        if (CheckHasSignal() && !playerKilled)
+        {
+            UpdateMouseLook();
+            UpdateMovement();
 
-        ProcessInputs();
+            ResetMouseButtonFlags();
+            UpdateMouseButtonInputs();
+            ProcessInputs();
+
+            isPlayerResetReady = true;
+            playDeathParticles = false;
+        }
+        else
+        {
+            if (isPlayerResetReady)
+            {
+                KillPlayer();
+            }
+        }
 
         UpdateHandPositions();
         UpdateArmColour();
 
-        ProcessDockedState();
+        ManagePlayerReset();
+
+        ManageParticles();
     }
 
     private void UpdateMouseLook()
@@ -192,6 +242,11 @@ public class FPCharacterController : MonoBehaviour
 
                 Arm.SetWidth(0.1f);
                 Arm.DrawLeftArm(true);
+
+                if (objectHit.CompareTag(centreCircuitBoardTag))
+                {
+                    playerKilled = true;
+                }
             }
         }
 
@@ -244,6 +299,11 @@ public class FPCharacterController : MonoBehaviour
 
                 Arm.SetWidth(0.1f);
                 Arm.DrawRightArm(true);
+
+                if (objectHit.CompareTag(centreCircuitBoardTag))
+                {
+                    playerKilled = true;
+                }
             }
         }
 
@@ -402,35 +462,135 @@ public class FPCharacterController : MonoBehaviour
 
     private void ProcessDockedState()
     {
-        if (rightHandDocked)
-        {
-            BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
-        }
-        else
-        {
-            BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
-        }
+        if (rightHandDocked) BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
+        else BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
 
-        if (leftHandDocked)
-        {
-            BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
-        }
-        else
-        {
-            BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
-        }
-
+        if (leftHandDocked)  BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
+        else BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
         
-        if (!leftHandDocked && !rightHandDocked)
+        if (!leftHandDocked && !rightHandDocked) hasSignal = false;
+        else hasSignal = true;
+
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag(floorSignalTag))
         {
-            hasSignal = false;
+            floorSignalCount++;
         }
-        else
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag(floorSignalTag))
         {
-            hasSignal = true;
+            floorSignalCount--;
+        }
+    }
+
+    private bool CheckHasSignal()
+    {
+        if (floorSignalCount > 0 || hasSignal) return true;
+
+        return false;
+    }
+
+    private void KillPlayer()
+    {
+        isPlayerResetReady = false;
+        playerKilled = true;
+        playDeathParticles = true;
+
+        if (moveLeftHandAway)
+        {
+            moveLeftHandBack = true;
+            moveLeftHandAway = false;
+        }
+        if (moveRightHandAway)
+        {
+            moveRightHandBack = true;
+            moveRightHandAway = false;
         }
 
-        if (hasSignal) Debug.Log("alive");
-        else Debug.Log("dead");
+        Invoke("ResetPlayer", deathParticleTotalTime);
+    }
+
+    private void ResetPlayer()
+    {
+        gameObject.transform.position = checkpoints[0].transform.position;
+        playerKilled = false;
+        forceResetPlayer = true;
+    }
+
+    private void TurnOffForceReset()
+    {
+        forceResetPlayer = false;
+    }
+
+    private void PlayDeathParticles()
+    {
+        playingParticles = true;
+
+        deathParticlesTimer += Time.deltaTime;
+
+        if (deathParticlesTimer <= 2.0f)
+        {
+            if (!deathParticleEffect1Left) deathParticleEffect1Left = Instantiate(thinSmokeEffect, leftCircuitBoard.transform.position, Quaternion.identity);
+            if (!deathParticleEffect1Right) deathParticleEffect1Right = Instantiate(thinSmokeEffect, rightCircuitBoard.transform.position, Quaternion.identity);
+        }
+        else if (deathParticlesTimer <= 4.0f)
+        {
+            if (!deathParticleEffect2Left) deathParticleEffect2Left = Instantiate(thickSmokeEffect, leftCircuitBoard.transform.position, Quaternion.identity);
+            if (!deathParticleEffect2Right) deathParticleEffect2Right = Instantiate(thickSmokeEffect, rightCircuitBoard.transform.position, Quaternion.identity);
+        }
+        else if (deathParticlesTimer <= 8.0f)
+        {
+            if (deathParticleEffect1Left) Destroy(deathParticleEffect1Left);
+            if (deathParticleEffect1Right) Destroy(deathParticleEffect1Right);
+
+            if (deathParticleEffect2Left) Destroy(deathParticleEffect2Left);
+            if (deathParticleEffect2Right) Destroy(deathParticleEffect2Right);
+
+
+            if (!deathParticleEffect3Left) deathParticleEffect3Left = Instantiate(explosionEffect, leftCircuitBoard.transform.position, Quaternion.identity);
+            if (!deathParticleEffect3Right) deathParticleEffect3Right = Instantiate(explosionEffect, rightCircuitBoard.transform.position, Quaternion.identity);
+            if (!deathParticleEffect4Left) deathParticleEffect4Left = Instantiate(fireEffect, leftCircuitBoard.transform.position, Quaternion.identity);
+            if (!deathParticleEffect4Right) deathParticleEffect4Right = Instantiate(fireEffect, rightCircuitBoard.transform.position, Quaternion.identity);
+        }
+    }
+
+    private void StopDeathParticles()
+    {
+        if (deathParticleEffect1Left) Destroy(deathParticleEffect1Left);
+        if (deathParticleEffect1Right) Destroy(deathParticleEffect1Right);
+        if (deathParticleEffect2Left) Destroy(deathParticleEffect2Left);
+        if (deathParticleEffect2Right) Destroy(deathParticleEffect2Right);
+        if (deathParticleEffect3Left) Destroy(deathParticleEffect3Left);
+        if (deathParticleEffect3Right) Destroy(deathParticleEffect3Right);
+        if (deathParticleEffect4Left) Destroy(deathParticleEffect4Left);
+        if (deathParticleEffect4Right) Destroy(deathParticleEffect4Right);
+
+        deathParticlesTimer = 0.0f;
+        playDeathParticles = false;
+        playingParticles = false;
+    }
+
+    private void ManagePlayerReset()
+    {
+        if (forceResetPlayer)
+        {
+            gameObject.transform.position = checkpoints[0].transform.position;
+            Invoke("TurnOffForceReset", 0.5f);
+        }
+    }
+
+    private void ManageParticles()
+    {
+        if (playDeathParticles)
+        {
+            if (!playingParticles) Invoke("StopDeathParticles", deathParticleTotalTime + 0.1f);
+            PlayDeathParticles();
+        }
     }
 }
