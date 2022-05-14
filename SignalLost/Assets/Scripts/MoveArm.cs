@@ -46,4 +46,16 @@ public class MoveArm : MonoBehaviour
         lineRendererLeftArm.startWidth = width;
         lineRendererLeftArm.endWidth = width;
     }
+
+    public void ChangeColour(int arm, Material material)
+    {
+        if (arm == 0)
+        {
+            lineRendererLeftArm.material = material;
+        }
+        else if (arm == 1)
+        {
+            lineRendererRightArm.material = material;
+        }
+    }
 }

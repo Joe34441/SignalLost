@@ -871,7 +871,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a359a06f3dc34604d97ebdd984ff94b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveArm: {fileID: 0}
+  Arm: {fileID: 0}
   gravityStrength: 9.81
   playerCamera: {fileID: 2444602918341858027}
   cameraYMaxRotation: 75
@@ -879,6 +879,16 @@ MonoBehaviour:
   mouseSmoothTime: 0.03
   walkSpeed: 6
   moveSmoothTime: 0.1
+  maxDistance: 10
+  mainMaterial: {fileID: 2100000, guid: 65c9c16bad1ec58429b63f9cc7c8d989, type: 2}
+  firstWarningDistance: 5
+  firstWarningMaterial: {fileID: 2100000, guid: 40bc90a0d90247a409bc991d38e978c0, type: 2}
+  lastWarningDistance: 7
+  lastWarningMaterial: {fileID: 2100000, guid: 040cf17dd4d419b49b132b3494a87fca, type: 2}
+  portTag: Port
+  dockTag: Dock
+  shoulderNoSignalMaterial: {fileID: 2100000, guid: 040cf17dd4d419b49b132b3494a87fca, type: 2}
+  shoulderHasSignalMaterial: {fileID: 2100000, guid: b8e48ff47c9f42340877c1b9572ba5ba, type: 2}
 --- !u!114 &546472467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -893,8 +903,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftHand: {fileID: 5766260774620347685}
   rightHand: {fileID: 3906229257528643843}
-  leftExtenderPoint: {fileID: 0}
-  rightExtenderPoint: {fileID: 0}
+  leftExtenderPoint: {fileID: 2387691087938992315}
+  rightExtenderPoint: {fileID: 4307101629003908600}
+  leftShoulder: {fileID: 0}
+  rightShoulder: {fileID: 0}
 --- !u!1 &2444602917310517585
 GameObject:
   m_ObjectHideFlags: 0

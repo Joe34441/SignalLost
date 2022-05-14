@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FPCharacterController : MonoBehaviour
 {
-    [SerializeField] private MoveArm moveArm;
+    [SerializeField] private MoveArm Arm;
 
     [SerializeField] private float gravityStrength = 9.81f;
 
@@ -18,6 +18,20 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private float moveSmoothTime = 0.1f;
 
     [SerializeField] private float maxDistance = 10.0f;
+
+    [SerializeField] private Material mainMaterial;
+    [SerializeField] private float firstWarningDistance = 5.0f;
+    [SerializeField] private Material firstWarningMaterial;
+    [SerializeField] private float lastWarningDistance = 8.0f;
+    [SerializeField] private Material lastWarningMaterial;
+
+    [SerializeField] private string portTag = "Port";
+    [SerializeField] private string dockTag = "Dock";
+
+    [SerializeField] private Material shoulderNoSignalMaterial;
+    [SerializeField] private Material shoulderHasSignalMaterial;
+
+    private bool hasSignal;
 
     private PlayerBodyParts BodyParts = null;
     private CharacterController controller = null;
@@ -50,11 +64,16 @@ public class FPCharacterController : MonoBehaviour
     private bool moveLeftHandAway;
     private bool moveLeftHandBack;
 
-    float speed = 15.0f;
+    float handMoveSpeed = 15.0f;
     float rightHandStartTime = 0.0f;
     float leftHandStartTime = 0.0f;
     float rightHandJourneyLength = 0.0f;
     float leftHandJourneyLength = 0.0f;
+
+    private bool rightHandMovingToDock = false;
+    private bool leftHandMovingToDock = false;
+    private bool rightHandDocked = false;
+    private bool leftHandDocked = false;
 
     public GameObject GetFakeRightHand() { return fakeRightHand; }
     public GameObject GetFakeLeftHand() { return fakeLeftHand; }
@@ -83,6 +102,9 @@ public class FPCharacterController : MonoBehaviour
         ProcessInputs();
 
         UpdateHandPositions();
+        UpdateArmColour();
+
+        ProcessDockedState();
     }
 
     private void UpdateMouseLook()
@@ -139,9 +161,21 @@ public class FPCharacterController : MonoBehaviour
 
             if (Physics.Raycast(ray, out outHit))
             {
-                GameObject objectHit = outHit.transform.gameObject;
-
                 Vector3 hitPoint = outHit.point;
+                leftHandMovingToDock = false;
+
+                GameObject objectHit = outHit.transform.gameObject;
+                if (objectHit.CompareTag(portTag))
+                {
+                    foreach (Transform transform in objectHit.transform)
+                    {
+                        if (transform.CompareTag(dockTag))
+                        {
+                            hitPoint = transform.position;
+                            leftHandMovingToDock = true;
+                        }
+                    }
+                }
 
                 Destroy(fakeLeftHand);
 
@@ -156,8 +190,8 @@ public class FPCharacterController : MonoBehaviour
                 moveLeftHandAway = true;
                 leftHandStartTime = 0.0f;
 
-                moveArm.SetWidth(0.1f);
-                moveArm.DrawLeftArm(true);
+                Arm.SetWidth(0.1f);
+                Arm.DrawLeftArm(true);
             }
         }
 
@@ -179,9 +213,21 @@ public class FPCharacterController : MonoBehaviour
 
             if (Physics.Raycast(ray, out outHit))
             {
-                GameObject objectHit = outHit.transform.gameObject;
-
                 Vector3 hitPoint = outHit.point;
+                rightHandMovingToDock = false;
+
+                GameObject objectHit = outHit.transform.gameObject;
+                if (objectHit.CompareTag(portTag))
+                {
+                    foreach (Transform transform in objectHit.transform)
+                    {
+                        if (transform.CompareTag(dockTag))
+                        {
+                            hitPoint = transform.position;
+                            rightHandMovingToDock = true;
+                        }
+                    }
+                }
 
                 Destroy(fakeRightHand);
 
@@ -196,8 +242,8 @@ public class FPCharacterController : MonoBehaviour
                 moveRightHandAway = true;
                 rightHandStartTime = 0.0f;
 
-                moveArm.SetWidth(0.1f);
-                moveArm.DrawRightArm(true);
+                Arm.SetWidth(0.1f);
+                Arm.DrawRightArm(true);
             }
         }
 
@@ -230,10 +276,15 @@ public class FPCharacterController : MonoBehaviour
                 rightHandJourneyLength = Vector3.Distance(fakeRightHandStartPosition, fakeRightHandDestination);
             }
 
-            float distanceCovered = (Time.time - rightHandStartTime) * speed;
+            float distanceCovered = (Time.time - rightHandStartTime) * handMoveSpeed;
             float fractionOfJourney = distanceCovered / rightHandJourneyLength;
 
             fakeRightHand.transform.position = Vector3.Lerp(fakeRightHandStartPosition, fakeRightHandDestination, fractionOfJourney);
+
+            if (fakeRightHand.transform.position == fakeRightHandDestination && rightHandMovingToDock)
+            {
+                rightHandDocked = true;
+            }
 
             float distanceFromHand = Vector3.Distance(BodyParts.GetRightHand().transform.position, fakeRightHand.transform.position);
             if (distanceFromHand > maxDistance)
@@ -247,13 +298,15 @@ public class FPCharacterController : MonoBehaviour
         }
         else if (moveRightHandBack)
         {
+            rightHandDocked = false;
+
             if (rightHandStartTime == 0)
             {
                 rightHandStartTime = Time.time;
                 rightHandJourneyLength = Vector3.Distance(fakeRightHandStartPosition, fakeRightHandDestination);
             }
 
-            float distanceCovered = (Time.time - rightHandStartTime) * speed;
+            float distanceCovered = (Time.time - rightHandStartTime) * handMoveSpeed;
             float fractionOfJourney = distanceCovered / rightHandJourneyLength;
 
             fakeRightHand.transform.position = Vector3.Lerp(fakeRightHandStartPosition, BodyParts.GetRightHand().transform.position, fractionOfJourney);
@@ -265,7 +318,7 @@ public class FPCharacterController : MonoBehaviour
                 GameObject hand = BodyParts.GetRightHand();
                 hand.GetComponent<MeshRenderer>().enabled = true;
                 BodyParts.SetRightHand(hand);
-                moveArm.DrawRightArm(false);
+                Arm.DrawRightArm(false);
                 moveRightHandBack = false;
             }
         }
@@ -278,10 +331,15 @@ public class FPCharacterController : MonoBehaviour
                 leftHandJourneyLength = Vector3.Distance(fakeLeftHandStartPosition, fakeLeftHandDestination);
             }
 
-            float distanceCovered = (Time.time - leftHandStartTime) * speed;
+            float distanceCovered = (Time.time - leftHandStartTime) * handMoveSpeed;
             float fractionOfJourney = distanceCovered / leftHandJourneyLength;
 
             fakeLeftHand.transform.position = Vector3.Lerp(fakeLeftHandStartPosition, fakeLeftHandDestination, fractionOfJourney);
+
+            if (fakeLeftHand.transform.position == fakeLeftHandDestination && leftHandMovingToDock)
+            {
+                leftHandDocked = true;
+            }
 
             float distanceFromHand = Vector3.Distance(BodyParts.GetLeftHand().transform.position, fakeLeftHand.transform.position);
             if (distanceFromHand > maxDistance)
@@ -295,13 +353,15 @@ public class FPCharacterController : MonoBehaviour
         }
         else if (moveLeftHandBack)
         {
+            leftHandDocked = false;
+
             if (leftHandStartTime == 0)
             {
                 leftHandStartTime = Time.time;
                 leftHandJourneyLength = Vector3.Distance(fakeLeftHandStartPosition, fakeLeftHandDestination);
             }
 
-            float distanceCovered = (Time.time - leftHandStartTime) * speed;
+            float distanceCovered = (Time.time - leftHandStartTime) * handMoveSpeed;
             float fractionOfJourney = distanceCovered / leftHandJourneyLength;
 
             fakeLeftHand.transform.position = Vector3.Lerp(fakeLeftHandStartPosition, BodyParts.GetLeftHand().transform.position, fractionOfJourney);
@@ -313,9 +373,64 @@ public class FPCharacterController : MonoBehaviour
                 GameObject hand = BodyParts.GetLeftHand();
                 hand.GetComponent<MeshRenderer>().enabled = true;
                 BodyParts.SetLeftHand(hand);
-                moveArm.DrawLeftArm(false);
+                Arm.DrawLeftArm(false);
                 moveLeftHandBack = false;
             }
         }
+    }
+
+    private void UpdateArmColour()
+    {
+        if (fakeLeftHand && !moveLeftHandBack)
+        {
+            float distanceFromHand = Vector3.Distance(BodyParts.GetLeftHand().transform.position, fakeLeftHand.transform.position);
+
+            if (distanceFromHand >= lastWarningDistance) Arm.ChangeColour(0, lastWarningMaterial);
+            else if (distanceFromHand >= firstWarningDistance) Arm.ChangeColour(0, firstWarningMaterial);
+            else Arm.ChangeColour(0, mainMaterial);
+        }
+
+        if (fakeRightHand && !moveRightHandBack)
+        {
+            float distanceFromHand = Vector3.Distance(BodyParts.GetRightHand().transform.position, fakeRightHand.transform.position);
+
+            if (distanceFromHand >= lastWarningDistance) Arm.ChangeColour(1, lastWarningMaterial);
+            else if (distanceFromHand >= firstWarningDistance) Arm.ChangeColour(1, firstWarningMaterial);
+            else Arm.ChangeColour(1, mainMaterial);
+        }
+    }
+
+    private void ProcessDockedState()
+    {
+        if (rightHandDocked)
+        {
+            BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
+        }
+        else
+        {
+            BodyParts.GetRightShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
+        }
+
+        if (leftHandDocked)
+        {
+            BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderHasSignalMaterial;
+        }
+        else
+        {
+            BodyParts.GetLeftShoulder().GetComponent<MeshRenderer>().material = shoulderNoSignalMaterial;
+        }
+
+        
+        if (!leftHandDocked && !rightHandDocked)
+        {
+            hasSignal = false;
+        }
+        else
+        {
+            hasSignal = true;
+        }
+
+        if (hasSignal) Debug.Log("alive");
+        else Debug.Log("dead");
     }
 }

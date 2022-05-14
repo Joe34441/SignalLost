@@ -10,6 +10,8 @@ public class PlayerBodyParts : MonoBehaviour
     [SerializeField] private GameObject leftExtenderPoint;
     [SerializeField] private GameObject rightExtenderPoint;
 
+    [SerializeField] private GameObject leftShoulder;
+    [SerializeField] private GameObject rightShoulder;
 
     public GameObject GetLeftHand() { return leftHand; }
     public void SetLeftHand(GameObject _hand) { leftHand = _hand; }
@@ -19,5 +21,6 @@ public class PlayerBodyParts : MonoBehaviour
     public GameObject GetLeftExtenderPoint() { return leftExtenderPoint; }
     public GameObject GetRightExtenderPoint() { return rightExtenderPoint; }
 
-
+    public GameObject GetLeftShoulder() { return leftShoulder; }
+    public GameObject GetRightShoulder() { return rightShoulder; }
 }
