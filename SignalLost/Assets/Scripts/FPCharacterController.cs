@@ -42,6 +42,8 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private GameObject explosionEffect;
     [SerializeField] private GameObject fireEffect;
 
+    [SerializeField] private TextMesh text;
+
     [SerializeField] private List<GameObject> checkpoints = new List<GameObject>();
 
     private bool hasSignal;
@@ -580,7 +582,8 @@ public class FPCharacterController : MonoBehaviour
     {
         if (forceResetPlayer)
         {
-            gameObject.transform.position = checkpoints[0].transform.position;
+            gameObject.transform.position = checkpoints[2].transform.position;
+            gameObject.transform.rotation = checkpoints[2].transform.rotation;
             Invoke("TurnOffForceReset", 0.5f);
         }
     }
