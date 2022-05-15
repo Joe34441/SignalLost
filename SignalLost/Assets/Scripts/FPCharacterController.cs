@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class FPCharacterController : MonoBehaviour
 {
+    [SerializeField] private GameStateManager GameManager;
+
     [SerializeField] private MoveArm Arm;
 
     [SerializeField] private float gravityStrength = 9.81f;
@@ -30,6 +32,7 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private string floorSignalTag = "SignalFloor";
     [SerializeField] private string centreCircuitBoardTag = "Board";
     [SerializeField] private string fakeHandTag = "FakeHand";
+    [SerializeField] private string checkpointTriggerTag = "Checkpoint";
 
     [SerializeField] private Material shoulderNoSignalMaterial;
     [SerializeField] private Material shoulderHasSignalMaterial;
@@ -43,9 +46,10 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private GameObject explosionEffect;
     [SerializeField] private GameObject fireEffect;
 
-    [SerializeField] private TextMesh text;
-
     [SerializeField] private List<GameObject> checkpoints = new List<GameObject>();
+
+    private List<GameObject> checkpointTriggers = new List<GameObject>();
+    private int currentCheckpointIndex = 0;
 
     private bool hasSignal;
     private int floorSignalCount = 0;
@@ -149,6 +153,7 @@ public class FPCharacterController : MonoBehaviour
             if (isPlayerResetReady)
             {
                 KillPlayer();
+                GameManager.AddDeath();
             }
         }
 
@@ -488,6 +493,29 @@ public class FPCharacterController : MonoBehaviour
         {
             floorSignalCount++;
         }
+
+        if (other.gameObject.CompareTag(checkpointTriggerTag))
+        {
+            if (checkpointTriggers.Count > 0)
+            {
+                bool contains = false;
+                foreach (GameObject go in checkpointTriggers)
+                {
+                    if (go == other.gameObject) contains = true;
+                }
+
+                if (!contains)
+                {
+                    checkpointTriggers.Add(other.gameObject);
+                    currentCheckpointIndex++;
+                }
+            }
+            else
+            {
+                checkpointTriggers.Add(other.gameObject);
+            }
+        }
+
     }
 
     private void OnTriggerExit(Collider other)
@@ -589,8 +617,8 @@ public class FPCharacterController : MonoBehaviour
     {
         if (forceResetPlayer)
         {
-            gameObject.transform.position = checkpoints[3].transform.position;
-            gameObject.transform.rotation = checkpoints[3].transform.rotation;
+            gameObject.transform.position = checkpoints[currentCheckpointIndex].transform.position;
+            gameObject.transform.rotation = checkpoints[currentCheckpointIndex].transform.rotation;
             Invoke("TurnOffForceReset", 0.5f);
         }
     }

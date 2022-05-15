@@ -9,6 +9,7 @@ TagManager:
   - SignalFloor
   - Board
   - FakeHand
+  - Checkpoint
   layers:
   - Default
   - TransparentFX
