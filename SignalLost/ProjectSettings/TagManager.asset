@@ -8,6 +8,7 @@ TagManager:
   - Dock
   - SignalFloor
   - Board
+  - FakeHand
   layers:
   - Default
   - TransparentFX

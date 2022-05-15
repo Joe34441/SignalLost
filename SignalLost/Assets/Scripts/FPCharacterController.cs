@@ -29,6 +29,7 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private string dockTag = "Dock";
     [SerializeField] private string floorSignalTag = "SignalFloor";
     [SerializeField] private string centreCircuitBoardTag = "Board";
+    [SerializeField] private string fakeHandTag = "FakeHand";
 
     [SerializeField] private Material shoulderNoSignalMaterial;
     [SerializeField] private Material shoulderHasSignalMaterial;
@@ -237,6 +238,9 @@ public class FPCharacterController : MonoBehaviour
                 hand.GetComponent<MeshRenderer>().enabled = false;
                 BodyParts.SetLeftHand(hand);
 
+                SphereCollider myCollider = fakeLeftHand.AddComponent<SphereCollider>();
+                myCollider.isTrigger = true;
+                fakeLeftHand.tag = fakeHandTag;
                 fakeLeftHandDestination = hitPoint;
                 fakeLeftHandStartPosition = BodyParts.GetLeftHand().transform.position;
                 moveLeftHandAway = true;
@@ -294,6 +298,9 @@ public class FPCharacterController : MonoBehaviour
                 hand.GetComponent<MeshRenderer>().enabled = false;
                 BodyParts.SetRightHand(hand);
 
+                SphereCollider myCollider = fakeRightHand.AddComponent<SphereCollider>();
+                myCollider.isTrigger = true;
+                fakeRightHand.tag = fakeHandTag;
                 fakeRightHandDestination = hitPoint;
                 fakeRightHandStartPosition = BodyParts.GetRightHand().transform.position;
                 moveRightHandAway = true;
@@ -582,8 +589,8 @@ public class FPCharacterController : MonoBehaviour
     {
         if (forceResetPlayer)
         {
-            gameObject.transform.position = checkpoints[2].transform.position;
-            gameObject.transform.rotation = checkpoints[2].transform.rotation;
+            gameObject.transform.position = checkpoints[3].transform.position;
+            gameObject.transform.rotation = checkpoints[3].transform.rotation;
             Invoke("TurnOffForceReset", 0.5f);
         }
     }
