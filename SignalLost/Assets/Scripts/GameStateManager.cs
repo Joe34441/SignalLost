@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameStateManager : MonoBehaviour
 {
@@ -12,10 +13,22 @@ public class GameStateManager : MonoBehaviour
 
     public void AddDeath() { playerDeaths++; RefreshText(); }
 
-    // Start is called before the first frame update
+    private void Awake()
+    {
+        playerName = MainMenu.menu.savedPlayerName;
+    }
+
     void Start()
     {
         RefreshText();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
     }
 
     private void RefreshText()

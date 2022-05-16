@@ -10,6 +10,7 @@ TagManager:
   - Board
   - FakeHand
   - Checkpoint
+  - Water
   layers:
   - Default
   - TransparentFX

@@ -46,6 +46,8 @@ public class FPCharacterController : MonoBehaviour
     [SerializeField] private GameObject explosionEffect;
     [SerializeField] private GameObject fireEffect;
 
+    [SerializeField] private GameObject electricEffect;
+
     [SerializeField] private List<GameObject> checkpoints = new List<GameObject>();
 
     private List<GameObject> checkpointTriggers = new List<GameObject>();
@@ -101,10 +103,15 @@ public class FPCharacterController : MonoBehaviour
     bool forceResetPlayer = false;
     private bool playDeathParticles = true;
 
+    private bool playElectricParticles = false;
+    private bool isElectricParticlesPlaying = false;
+
     private bool playingParticles = false;
 
     private float deathParticlesTimer = 0.0f;
     private float deathParticleTotalTime = 8.0f;
+    private float startSafetyTimer = 0.0f;
+    private float startSafeTime = 0.25f;
 
     private GameObject deathParticleEffect1Left;
     private GameObject deathParticleEffect1Right;
@@ -115,6 +122,8 @@ public class FPCharacterController : MonoBehaviour
     private GameObject deathParticleEffect4Left;
     private GameObject deathParticleEffect4Right;
 
+    private GameObject electricParticleEffect;
+    private Vector3 electricParticleEffectPosition;
 
     public GameObject GetFakeRightHand() { return fakeRightHand; }
     public GameObject GetFakeLeftHand() { return fakeLeftHand; }
@@ -134,6 +143,8 @@ public class FPCharacterController : MonoBehaviour
 
     private void Update()
     {
+        if (!SafetyTimeOver()) return;
+
         ProcessDockedState();
 
         if (CheckHasSignal() && !playerKilled)
@@ -150,6 +161,7 @@ public class FPCharacterController : MonoBehaviour
         }
         else
         {
+
             if (isPlayerResetReady)
             {
                 KillPlayer();
@@ -223,6 +235,7 @@ public class FPCharacterController : MonoBehaviour
                 leftHandMovingToDock = false;
 
                 GameObject objectHit = outHit.transform.gameObject;
+
                 if (objectHit.CompareTag(portTag))
                 {
                     foreach (Transform transform in objectHit.transform)
@@ -283,6 +296,7 @@ public class FPCharacterController : MonoBehaviour
                 rightHandMovingToDock = false;
 
                 GameObject objectHit = outHit.transform.gameObject;
+
                 if (objectHit.CompareTag(portTag))
                 {
                     foreach (Transform transform in objectHit.transform)
@@ -487,45 +501,6 @@ public class FPCharacterController : MonoBehaviour
 
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag(floorSignalTag))
-        {
-            floorSignalCount++;
-        }
-
-        if (other.gameObject.CompareTag(checkpointTriggerTag))
-        {
-            if (checkpointTriggers.Count > 0)
-            {
-                bool contains = false;
-                foreach (GameObject go in checkpointTriggers)
-                {
-                    if (go == other.gameObject) contains = true;
-                }
-
-                if (!contains)
-                {
-                    checkpointTriggers.Add(other.gameObject);
-                    currentCheckpointIndex++;
-                }
-            }
-            else
-            {
-                checkpointTriggers.Add(other.gameObject);
-            }
-        }
-
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.CompareTag(floorSignalTag))
-        {
-            floorSignalCount--;
-        }
-    }
-
     private bool CheckHasSignal()
     {
         if (floorSignalCount > 0 || hasSignal) return true;
@@ -629,6 +604,83 @@ public class FPCharacterController : MonoBehaviour
         {
             if (!playingParticles) Invoke("StopDeathParticles", deathParticleTotalTime + 0.1f);
             PlayDeathParticles();
+        }
+
+        if (playElectricParticles)
+        {
+            if (!isElectricParticlesPlaying)
+            {
+                PlayElectricParticles();
+                Invoke("StopElectricParticles", deathParticleTotalTime + 0.1f);
+                isElectricParticlesPlaying = true;
+            }
+        }
+    }
+
+    private void PlayElectricParticles()
+    {
+        if (!electricParticleEffect) electricParticleEffect = Instantiate(electricEffect, electricParticleEffectPosition, Quaternion.identity);
+    }
+
+    private void StopElectricParticles()
+    {
+        if (electricParticleEffect) Destroy(electricParticleEffect);
+    }
+
+    private bool SafetyTimeOver()
+    {
+
+        if (startSafeTime == 0) startSafeTime = Time.time;
+        startSafetyTimer += Time.deltaTime;
+
+        if (startSafetyTimer <= startSafeTime) return false;
+
+        return true;
+    }
+
+
+    public void WaterHit(Vector3 position)
+    {
+        playerKilled = true;
+        playElectricParticles = true;
+        electricParticleEffectPosition = position;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag(floorSignalTag))
+        {
+            floorSignalCount++;
+        }
+
+        if (other.gameObject.CompareTag(checkpointTriggerTag))
+        {
+            if (checkpointTriggers.Count > 0)
+            {
+                bool contains = false;
+                foreach (GameObject go in checkpointTriggers)
+                {
+                    if (go == other.gameObject) contains = true;
+                }
+
+                if (!contains)
+                {
+                    checkpointTriggers.Add(other.gameObject);
+                    currentCheckpointIndex++;
+                }
+            }
+            else
+            {
+                checkpointTriggers.Add(other.gameObject);
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag(floorSignalTag))
+        {
+            floorSignalCount--;
         }
     }
 }
