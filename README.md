@@ -1,13 +1,13 @@
 # SignalLost
 
-- You are an experimental branch of a humanoid robot, the developers are evaluating their new Artificial Intelligence by putting you through tests to examine your problem solving ability. Navigate through the tests completing the puzzles without losing signal, or your current iteration will be marked as a failure.
+- You are an experimental branch of a humanoid robot, the developers are evaluating their updated Machine Learning algorithms by putting you through tests to examine your pattern recognition and problem solving ability. Navigate through the tests completing the puzzles without losing signal, or your current iteration will be marked as a failure.
 
 <br />
 
 - move with WASD
 - control your two hands with left and right mouse button. Click to shoot out your hands, interacting with mechanics to beat each level
-  - hold click - hand shoots out, stays at the destination if it makes contact with a signal source, or grabs onto an interactable object if hit
-  - release click - hand returns, with object if grabbed
+  - hold click - corresponding hand shoots out, stays at the destination if within range
+  - release click - corresponding hand returns
 
 <br />
 <br />
