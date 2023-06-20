@@ -1,5 +1,7 @@
 # SignalLost
 
+Short game for game jam theme "Signal Lost"
+
 - You are an experimental branch of a humanoid robot, the developers are evaluating their updated Machine Learning algorithms by putting you through tests to examine your pattern recognition and problem solving ability. Navigate through the tests completing the puzzles without losing signal, or your current iteration will be marked as a failure.
 
 <br />
